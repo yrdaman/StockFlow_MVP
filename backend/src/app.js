@@ -22,6 +22,7 @@ const PgSessionStore = connectPgSimple(session);
 
 export function createApp(prisma = new PrismaClient()) {
   const app = express();
+  app.set("trust proxy", 1);
   const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
   const allowedFrontendOrigins = process.env.NODE_ENV === "production"
     ? [frontendOrigin]

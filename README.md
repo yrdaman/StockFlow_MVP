@@ -56,3 +56,12 @@ requests also require the CSRF token from `GET /api/auth/csrf-token`.
 Product responses include the backend-computed `effectiveThreshold` and
 `isLowStock` values. Low stock uses the product threshold, then the
 organization default threshold, then `5`.
+
+## Dashboard API
+
+- `GET /api/dashboard` — returns organization-scoped product totals, total
+  quantity, low-stock count, and low-stock products
+
+Dashboard responses include backend-computed effective thresholds. Low stock
+uses the product threshold, then the organization default threshold, then `5`,
+with products classified as low stock when `quantity <= effectiveThreshold`.

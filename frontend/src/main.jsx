@@ -61,7 +61,12 @@ function ProductForm({ product, onSave, onCancel }) {
 
   return (
     <form className="panel product-form" onSubmit={submit}>
-      <h2>{product ? "Edit product" : "Add product"}</h2>
+      <div className="form-heading">
+        <div>
+          <p className="eyebrow">{product ? "Product details" : "New inventory item"}</p>
+          <h2>{product ? "Edit product" : "Add product"}</h2>
+        </div>
+      </div>
       <label>Name<input required maxLength="200" value={form.name} onChange={(event) => update("name", event.target.value)} /></label>
       <label>SKU<input required maxLength="100" value={form.sku} onChange={(event) => update("sku", event.target.value)} /></label>
       <label>Description<textarea maxLength="2000" value={form.description || ""} onChange={(event) => update("description", event.target.value)} /></label>
@@ -80,7 +85,53 @@ function ProductForm({ product, onSave, onCancel }) {
   );
 }
 
-function Inventory({ user, onLogout }) {
+function Navigation({ view, setView }) {
+  return <nav className="navigation">
+    <button className={view === "dashboard" ? "nav-active" : "secondary"} onClick={() => setView("dashboard")}>Dashboard</button>
+    <button className={view === "inventory" ? "nav-active" : "secondary"} onClick={() => setView("inventory")}>Inventory</button>
+  </nav>;
+}
+
+function Dashboard({ user, onLogout, setView }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    apiRequest("/api/dashboard")
+      .then(setData)
+      .catch((requestError) => setError(requestError.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return <main className="app-shell">
+    <header className="topbar">
+      <div><p className="brand">StockFlow</p><p className="account-context">{user.organization.name} <span>·</span> {user.email}</p></div>
+      <button className="secondary" onClick={onLogout}>Log out</button>
+    </header>
+    <Navigation view="dashboard" setView={setView} />
+    <section className="content">
+      <div className="page-heading"><p className="eyebrow">Overview</p><h1>Dashboard</h1><p className="page-description">A quick view of your organization’s current inventory.</p></div>
+      {loading && <p className="status-message">Loading dashboard...</p>}
+      {error && <p className="error status-message">{error}</p>}
+      {data && <><div className="stats-grid">
+        <div className="stat-card"><span className="metric-label">Total products</span><strong>{data.totalProducts}</strong><span className="metric-note">Across your catalog</span></div>
+        <div className="stat-card"><span className="metric-label">Total stock quantity</span><strong>{data.totalQuantity}</strong><span className="metric-note">Units currently on hand</span></div>
+        <div className="stat-card"><span className="metric-label">Low-stock products</span><strong className={data.lowStockCount ? "metric-alert" : ""}>{data.lowStockCount}</strong><span className="metric-note">{data.lowStockCount ? "Needs attention" : "Everything looks healthy"}</span></div>
+      </div>
+      <section className="panel low-stock-panel">
+        <div className="section-heading"><div><p className="eyebrow">Inventory health</p><h2>Low-stock products</h2></div><span className="section-count">{data.lowStockCount} items</span></div>
+        {data.lowStockProducts.length === 0 ? <p className="empty status-message">No low-stock products.</p> : <div className="table-wrap">
+          <table><thead><tr><th>Name</th><th>SKU</th><th>Quantity</th><th>Effective threshold</th></tr></thead>
+            <tbody>{data.lowStockProducts.map((product) => <tr key={product.id}><td>{product.name}</td><td>{product.sku}</td><td>{product.quantity}</td><td>{product.effectiveThreshold}</td></tr>)}</tbody>
+          </table>
+        </div>}
+      </section></>}
+    </section>
+  </main>;
+}
+
+function Inventory({ user, onLogout, setView }) {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState(null);
@@ -140,19 +191,21 @@ function Inventory({ user, onLogout }) {
   }
 
   return (
-    <main className="inventory-page">
+    <main className="app-shell">
       <header className="topbar">
-        <div><h1 className="title">StockFlow</h1><p>{user.organization.name} · {user.email}</p></div>
+        <div><p className="brand">StockFlow</p><p className="account-context">{user.organization.name} <span>·</span> {user.email}</p></div>
         <button className="secondary" onClick={onLogout}>Log out</button>
       </header>
+      <Navigation view="inventory" setView={setView} />
       <section className="content">
-        <div className="toolbar">
-          <input aria-label="Search products" placeholder="Search by name or SKU" value={search} onChange={(event) => { setSearch(event.target.value); loadProducts(event.target.value); }} />
-          <button onClick={() => { setEditing(null); setShowForm(true); }}>Add product</button>
-        </div>
-        {showForm && <ProductForm product={editing} onSave={saved} onCancel={() => { setShowForm(false); setEditing(null); }} />}
-        {error && <p className="error">{error}</p>}
-        {loading ? <p>Loading products...</p> : products.length === 0 ? <p className="empty">No products found.</p> : (
+          <div className="page-heading"><p className="eyebrow">Catalog</p><h1>Inventory</h1><p className="page-description">Manage products, quantities, and stock health in one place.</p></div>
+          <div className="toolbar">
+            <div className="search-wrap"><span className="search-icon">⌕</span><input aria-label="Search products" placeholder="Search by name or SKU" value={search} onChange={(event) => { setSearch(event.target.value); loadProducts(event.target.value); }} /></div>
+            <button className="primary-action" onClick={() => { setEditing(null); setShowForm(true); }}>Add product</button>
+          </div>
+          {showForm && <ProductForm product={editing} onSave={saved} onCancel={() => { setShowForm(false); setEditing(null); }} />}
+          {error && <p className="error status-message">{error}</p>}
+          {loading ? <p className="status-message">Loading products...</p> : products.length === 0 ? <p className="empty status-message">{search ? "No products match your search." : "No products found yet."}</p> : (
           <div className="table-wrap">
             <table>
               <thead><tr><th>Name</th><th>SKU</th><th>Quantity</th><th>Stock</th><th>Selling price</th><th>Actions</th></tr></thead>
@@ -198,7 +251,7 @@ function Auth({ onAuthenticated }) {
   }
 
   return <main className="page"><form className="panel auth-form" onSubmit={submit}>
-    <h1 className="title">{mode === "login" ? "Sign in" : "Create account"}</h1>
+    <p className="brand">StockFlow</p><h1 className="title">{mode === "login" ? "Sign in" : "Create account"}</h1>
     <input required type="email" placeholder="Email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
     <input required minLength="8" type="password" placeholder="Password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
     {mode === "signup" && <input required placeholder="Organization name" value={form.organizationName} onChange={(event) => setForm({ ...form, organizationName: event.target.value })} />}
@@ -210,6 +263,7 @@ function Auth({ onAuthenticated }) {
 
 function App() {
   const [user, setUser] = useState(null);
+  const [view, setView] = useState("dashboard");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -223,7 +277,10 @@ function App() {
   }
 
   if (loading) return <main className="page">Loading...</main>;
-  return user ? <Inventory user={user} onLogout={logout} /> : <Auth onAuthenticated={setUser} />;
+  if (!user) return <Auth onAuthenticated={(authenticatedUser) => { setUser(authenticatedUser); setView("dashboard"); }} />;
+  return view === "dashboard"
+    ? <Dashboard user={user} onLogout={logout} setView={setView} />
+    : <Inventory user={user} onLogout={logout} setView={setView} />;
 }
 
 createRoot(document.getElementById("root")).render(<StrictMode><App /></StrictMode>);

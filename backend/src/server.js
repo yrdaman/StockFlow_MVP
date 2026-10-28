@@ -1,14 +1,8 @@
-import "dotenv/config";
-import express from "express";
+import { createApp } from "./app.js";
+import { PrismaClient } from "@prisma/client";
 
-const app = express();
 const port = Number(process.env.PORT) || 3000;
-
-app.use(express.json());
-
-app.get("/health", (_request, response) => {
-  response.json({ status: "ok" });
-});
+const app = createApp(new PrismaClient());
 
 app.listen(port, () => {
   console.log(`StockFlow backend listening on port ${port}`);

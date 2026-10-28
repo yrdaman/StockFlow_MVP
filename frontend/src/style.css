@@ -4,3 +4,47 @@ body {
   margin: 0;
   min-width: 320px;
 }
+
+.page {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 360px;
+  padding: 24px;
+  width: 100%;
+}
+
+.title {
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+input,
+button {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+button {
+  background: #111827;
+  color: white;
+  cursor: pointer;
+}
+
+.link {
+  background: transparent;
+  border: 0;
+  color: #2563eb;
+}
+
+.error {
+  color: #b91c1c;
+}

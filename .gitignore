@@ -8,3 +8,9 @@ dist/
 *.sqlite
 *.sqlite3
 
+
+# Local database backups
+backend/prisma/*.db.backup
+
+# Generated Prisma clients
+backend/generated/

@@ -6,6 +6,7 @@ import express from "express";
 import session from "express-session";
 import helmet from "helmet";
 import SQLiteStoreFactory from "connect-sqlite3";
+import connectPgSimple from "connect-pg-simple";
 import { PrismaClient } from "@prisma/client";
 import {
   createAuthRouter,
@@ -17,6 +18,7 @@ import { createProductRouter } from "./products.js";
 import { createDashboardRouter } from "./dashboard.js";
 
 const SQLiteStore = SQLiteStoreFactory(session);
+const PgSessionStore = connectPgSimple(session);
 
 export function createApp(prisma = new PrismaClient()) {
   const app = express();
@@ -49,10 +51,15 @@ export function createApp(prisma = new PrismaClient()) {
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
-    store: new SQLiteStore({
-      db: "sessions.db",
-      dir: path.resolve(process.cwd(), process.env.SESSION_DB_DIR || "./prisma"),
-    }),
+    store: process.env.NODE_ENV === "production"
+      ? new PgSessionStore({
+         conString: process.env.NEON_DATABASE_URL,
+         createTableIfMissing: true,
+        })
+      : new SQLiteStore({
+         db: "sessions.db",
+         dir: path.resolve(process.cwd(), process.env.SESSION_DB_DIR || "./prisma"),
+        }),
     cookie: {
       httpOnly: true,
       sameSite: "lax",
@@ -104,3 +111,4 @@ export function createApp(prisma = new PrismaClient()) {
 function cryptoRandomToken() {
   return randomBytes(32).toString("hex");
 }
+

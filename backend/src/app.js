@@ -1,4 +1,7 @@
 import "dotenv/config";
+import fs from "node:fs";
+import { createSettingsRouter } from "./settings.js";
+import { fileURLToPath } from "node:url";
 import { randomBytes } from "node:crypto";
 import path from "node:path";
 import cors from "cors";
@@ -100,7 +103,22 @@ export function createApp(prisma = new PrismaClient()) {
   });
   app.use("/api/products", createProductRouter(prisma));
   app.use("/api/dashboard", createDashboardRouter(prisma));
+  app.use("/api/settings", createSettingsRouter(prisma));
+  const frontendDist = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../frontend/dist"
+  );
 
+  if (fs.existsSync(frontendDist)) {
+    app.use(express.static(frontendDist));
+
+    app.use((request, response, next) => {
+      if (request.method === "GET" && !request.path.startsWith("/api/")) {
+        return response.sendFile(path.join(frontendDist, "index.html"));
+      }
+      next();
+    });
+  }
   app.use((error, _request, response, _next) => {
     console.error(error);
     response.status(500).json({ error: "Internal server error." });

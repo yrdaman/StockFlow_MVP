@@ -2,7 +2,9 @@ import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
 
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const apiUrl = import.meta.env.PROD
+  ? ""
+  : (import.meta.env.VITE_API_URL || "http://localhost:3000");
 const emptyProduct = {
   name: "",
   sku: "",
@@ -89,6 +91,7 @@ function Navigation({ view, setView }) {
   return <nav className="navigation">
     <button className={view === "dashboard" ? "nav-active" : "secondary"} onClick={() => setView("dashboard")}>Dashboard</button>
     <button className={view === "inventory" ? "nav-active" : "secondary"} onClick={() => setView("inventory")}>Inventory</button>
+    <button className={view === "settings" ? "nav-active" : "secondary"} onClick={() => setView("settings")}>Settings</button>
   </nav>;
 }
 
@@ -225,6 +228,55 @@ function Inventory({ user, onLogout, setView }) {
   );
 }
 
+function Settings({ user, onLogout, setView }) {
+  const [value, setValue] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    apiRequest("/api/settings")
+      .then((result) => setValue(String(result.defaultThreshold)))
+      .catch((requestError) => setError(requestError.message));
+  }, []);
+
+  async function save(event) {
+    event.preventDefault();
+    setMessage("");
+    setError("");
+    try {
+      const token = await csrfToken();
+      const result = await apiRequest("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": token },
+        body: JSON.stringify({ defaultThreshold: Number(value) }),
+      });
+      setValue(String(result.defaultThreshold));
+      setMessage("Saved.");
+    } catch (requestError) {
+      setError(requestError.message);
+    }
+  }
+
+  return <main className="app-shell">
+    <header className="topbar">
+      <div><p className="brand">StockFlow</p><p className="account-context">{user.organization.name} <span>·</span> {user.email}</p></div>
+      <button className="secondary" onClick={onLogout}>Log out</button>
+    </header>
+    <Navigation view="settings" setView={setView} />
+    <section className="content">
+      <div className="page-heading"><p className="eyebrow">Preferences</p><h1>Settings</h1><p className="page-description">Used when a product has no threshold of its own.</p></div>
+      <form className="panel product-form" onSubmit={save}>
+        <label>Default low-stock threshold
+          <input required min="0" step="1" type="number" value={value} onChange={(event) => setValue(event.target.value)} />
+        </label>
+        {message && <p className="status-message">{message}</p>}
+        {error && <p className="error">{error}</p>}
+        <div className="actions"><button type="submit">Save</button></div>
+      </form>
+    </section>
+  </main>;
+}
+
 function Auth({ onAuthenticated }) {
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState({ email: "", password: "", organizationName: "" });
@@ -278,9 +330,9 @@ function App() {
 
   if (loading) return <main className="page">Loading...</main>;
   if (!user) return <Auth onAuthenticated={(authenticatedUser) => { setUser(authenticatedUser); setView("dashboard"); }} />;
-  return view === "dashboard"
-    ? <Dashboard user={user} onLogout={logout} setView={setView} />
-    : <Inventory user={user} onLogout={logout} setView={setView} />;
+  if (view === "dashboard") return <Dashboard user={user} onLogout={logout} setView={setView} />;
+  if (view === "settings") return <Settings user={user} onLogout={logout} setView={setView} />;
+  return <Inventory user={user} onLogout={logout} setView={setView} />;
 }
 
 createRoot(document.getElementById("root")).render(<StrictMode><App /></StrictMode>);

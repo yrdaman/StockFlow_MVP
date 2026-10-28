@@ -53,16 +53,16 @@ export function createApp(prisma = new PrismaClient()) {
     saveUninitialized: false,
     store: process.env.NODE_ENV === "production"
       ? new PgSessionStore({
-         conString: process.env.NEON_DATABASE_URL,
-         createTableIfMissing: true,
-        })
+        conString: process.env.NEON_DATABASE_URL,
+        createTableIfMissing: true,
+      })
       : new SQLiteStore({
-         db: "sessions.db",
-         dir: path.resolve(process.cwd(), process.env.SESSION_DB_DIR || "./prisma"),
-        }),
+        db: "sessions.db",
+        dir: path.resolve(process.cwd(), process.env.SESSION_DB_DIR || "./prisma"),
+      }),
     cookie: {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000,
     },

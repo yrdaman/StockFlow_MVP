@@ -43,7 +43,9 @@ model Product {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name           String
   sku            String
-  price          Int?
+  description    String?
+  costPrice      Float?
+  sellingPrice   Float?
   stockQuantity  Int          @default(0)
   lowStockThreshold Int?
   createdAt      DateTime     @default(now())

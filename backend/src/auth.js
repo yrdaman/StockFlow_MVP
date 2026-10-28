@@ -37,7 +37,7 @@ function validateCredentials(email, password) {
   return { normalizedEmail };
 }
 
-function requireCsrf(request, response, next) {
+export function requireCsrf(request, response, next) {
   const token = request.get("x-csrf-token");
   if (!token || token !== request.session.csrfToken) {
     return response.status(403).json({ error: "Invalid CSRF token." });

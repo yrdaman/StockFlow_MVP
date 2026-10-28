@@ -13,6 +13,7 @@ import {
   requireAuth,
   requireOrganizationContext,
 } from "./auth.js";
+import { createProductRouter } from "./products.js";
 
 const SQLiteStore = SQLiteStoreFactory(session);
 
@@ -77,6 +78,7 @@ export function createApp(prisma = new PrismaClient()) {
       },
     });
   });
+  app.use("/api/products", createProductRouter(prisma));
 
   app.use((error, _request, response, _next) => {
     console.error(error);

@@ -40,3 +40,19 @@ In another terminal, start the frontend:
 cd frontend
 npm run dev
 ```
+
+## Product API
+
+All product endpoints require the authenticated session cookie. State-changing
+requests also require the CSRF token from `GET /api/auth/csrf-token`.
+
+- `GET /api/products?search=term` — list organization products, optionally searching name or SKU
+- `GET /api/products/:id` — retrieve one organization product
+- `POST /api/products` — create a product
+- `PUT /api/products/:id` — update product details and quantity
+- `PATCH /api/products/:id/quantity` — update quantity
+- `DELETE /api/products/:id` — delete a product
+
+Product responses include the backend-computed `effectiveThreshold` and
+`isLowStock` values. Low stock uses the product threshold, then the
+organization default threshold, then `5`.

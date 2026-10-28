@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 body {
+  color: #111827;
   margin: 0;
   min-width: 320px;
 }
@@ -19,6 +20,113 @@ body {
   max-width: 360px;
   padding: 24px;
   width: 100%;
+}
+
+.inventory-page {
+  margin: 0 auto;
+  max-width: 1280px;
+  padding: 24px;
+}
+
+.topbar,
+.toolbar,
+.actions {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.content {
+  margin-top: 32px;
+}
+
+.toolbar {
+  margin-bottom: 20px;
+}
+
+.toolbar input {
+  flex: 1;
+  max-width: 500px;
+}
+
+.panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #0000000d;
+  padding: 20px;
+}
+
+.product-form {
+  margin-bottom: 24px;
+}
+
+.product-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 12px 0;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 360px;
+  width: 100%;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 14px 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.secondary {
+  background: white;
+  color: #111827;
+}
+
+.danger {
+  background: #b91c1c;
+}
+
+.badge {
+  background: #dcfce7;
+  border-radius: 999px;
+  color: #166534;
+  padding: 4px 8px;
+}
+
+.badge.low {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.empty {
+  color: #6b7280;
 }
 
 .title {
@@ -47,4 +155,10 @@ button {
 
 .error {
   color: #b91c1c;
+}
+
+@media (max-width: 700px) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

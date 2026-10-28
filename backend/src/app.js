@@ -21,6 +21,9 @@ const SQLiteStore = SQLiteStoreFactory(session);
 export function createApp(prisma = new PrismaClient()) {
   const app = express();
   const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+  const allowedFrontendOrigins = process.env.NODE_ENV === "production"
+    ? [frontendOrigin]
+    : [frontendOrigin, "http://localhost:5173", "http://localhost:4173"];
   const sessionSecret = process.env.SESSION_SECRET;
 
   if (!sessionSecret || sessionSecret.length < 32) {
@@ -31,7 +34,15 @@ export function createApp(prisma = new PrismaClient()) {
   }
 
   app.use(helmet());
-  app.use(cors({ origin: frontendOrigin, credentials: true }));
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedFrontendOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Origin is not allowed by CORS."));
+    },
+    credentials: true,
+  }));
   app.use(express.json());
   app.use(session({
     name: "stockflow.sid",

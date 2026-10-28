@@ -454,8 +454,35 @@ button:disabled {
 .link {
   background: transparent;
   border: 0;
-  color: #2563eb;
+  color: #245fae;
   font-weight: 650;
+  position: relative;
+  transition: none;
+}
+
+.link::after {
+  background: #3478d5;
+  bottom: 4px;
+  content: "";
+  height: 1px;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+  transition: transform 160ms ease;
+  width: 58%;
+}
+
+.link:hover:not(:disabled) {
+  background: transparent;
+  border-color: transparent;
+  color: #245fae;
+  transform: none;
+}
+
+.link:hover:not(:disabled)::after,
+.link:focus-visible::after {
+  transform: translateX(-50%) scaleX(1);
 }
 
 .error {

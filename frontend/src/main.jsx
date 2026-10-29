@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./style.css";
 
 const apiUrl = import.meta.env.PROD
-  ? ""
+  ? "https://stockflow-mvp-jve2.onrender.com"
   : (import.meta.env.VITE_API_URL || "http://localhost:3000");
 const emptyProduct = {
   name: "",

@@ -35,3 +35,7 @@ export function createSettingsRouter(prisma) {
 
   return router;
 }
+
+const apiUrl = import.meta.env.PROD
+  ? "https://stockflow-mvp-jve2.onrender.com"
+  : "http://localhost:3000";

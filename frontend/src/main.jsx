@@ -2,9 +2,7 @@ import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
 
-const apiUrl = import.meta.env.PROD
-  ? "https://stockflow-mvp-jve2.onrender.com"
-  : (import.meta.env.VITE_API_URL || "http://localhost:3000");
+const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:3000");
 const emptyProduct = {
   name: "",
   sku: "",
@@ -313,34 +311,6 @@ function Auth({ onAuthenticated }) {
   </form></main>;
 }
 
-function CookieNotice() {
-  const [visible, setVisible] = useState(() => localStorage.getItem("stockflow-cookie-consent") !== "accepted");
-
-  if (!import.meta.env.PROD || !visible) return null;
-
-  function acceptCookies() {
-    localStorage.setItem("stockflow-cookie-consent", "accepted");
-    setVisible(false);
-  }
-
-  return <aside className="cookie-banner" role="dialog" aria-label="Cookie notice">
-    <div>
-      <strong>Cookies are required</strong>
-      <p>Allow cookies in your browser to use StockFlow.</p>
-      <details>
-        <summary>How to allow cookies</summary>
-        <ol>
-          <li>Open your browser menu and choose <strong>Settings</strong>.</li>
-          <li>Open <strong>Privacy and security</strong>, then <strong>Cookies</strong>.</li>
-          <li>Allow cookies, or add this site to the allowed-sites list.</li>
-          <li>Return here and refresh the page.</li>
-        </ol>
-      </details>
-    </div>
-    <button type="button" onClick={acceptCookies}>I allowed cookies</button>
-  </aside>;
-}
-
 function App() {
   const [user, setUser] = useState(null);
   const [view, setView] = useState("dashboard");
@@ -363,7 +333,7 @@ function App() {
   else if (view === "settings") content = <Settings user={user} onLogout={logout} setView={setView} />;
   else content = <Inventory user={user} onLogout={logout} setView={setView} />;
 
-  return <><CookieNotice />{content}</>;
+  return content;
 }
 
 createRoot(document.getElementById("root")).render(<StrictMode><App /></StrictMode>);

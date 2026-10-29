@@ -313,6 +313,34 @@ function Auth({ onAuthenticated }) {
   </form></main>;
 }
 
+function CookieNotice() {
+  const [visible, setVisible] = useState(() => localStorage.getItem("stockflow-cookie-consent") !== "accepted");
+
+  if (!import.meta.env.PROD || !visible) return null;
+
+  function acceptCookies() {
+    localStorage.setItem("stockflow-cookie-consent", "accepted");
+    setVisible(false);
+  }
+
+  return <aside className="cookie-banner" role="dialog" aria-label="Cookie notice">
+    <div>
+      <strong>Cookies are required</strong>
+      <p>Allow cookies in your browser to use StockFlow.</p>
+      <details>
+        <summary>How to allow cookies</summary>
+        <ol>
+          <li>Open your browser menu and choose <strong>Settings</strong>.</li>
+          <li>Open <strong>Privacy and security</strong>, then <strong>Cookies</strong>.</li>
+          <li>Allow cookies, or add this site to the allowed-sites list.</li>
+          <li>Return here and refresh the page.</li>
+        </ol>
+      </details>
+    </div>
+    <button type="button" onClick={acceptCookies}>I allowed cookies</button>
+  </aside>;
+}
+
 function App() {
   const [user, setUser] = useState(null);
   const [view, setView] = useState("dashboard");
@@ -328,11 +356,14 @@ function App() {
     setUser(null);
   }
 
-  if (loading) return <main className="page">Loading...</main>;
-  if (!user) return <Auth onAuthenticated={(authenticatedUser) => { setUser(authenticatedUser); setView("dashboard"); }} />;
-  if (view === "dashboard") return <Dashboard user={user} onLogout={logout} setView={setView} />;
-  if (view === "settings") return <Settings user={user} onLogout={logout} setView={setView} />;
-  return <Inventory user={user} onLogout={logout} setView={setView} />;
+  let content;
+  if (loading) content = <main className="page">Loading...</main>;
+  else if (!user) content = <Auth onAuthenticated={(authenticatedUser) => { setUser(authenticatedUser); setView("dashboard"); }} />;
+  else if (view === "dashboard") content = <Dashboard user={user} onLogout={logout} setView={setView} />;
+  else if (view === "settings") content = <Settings user={user} onLogout={logout} setView={setView} />;
+  else content = <Inventory user={user} onLogout={logout} setView={setView} />;
+
+  return <><CookieNotice />{content}</>;
 }
 
 createRoot(document.getElementById("root")).render(<StrictMode><App /></StrictMode>);

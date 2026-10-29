@@ -27,9 +27,10 @@ export function createApp(prisma = new PrismaClient()) {
   const app = express();
   app.set("trust proxy", 1);
   const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+  const configuredOrigins = frontendOrigin.split(",").map((value) => value.trim()).filter(Boolean);
   const allowedFrontendOrigins = process.env.NODE_ENV === "production"
-    ? [frontendOrigin]
-    : [frontendOrigin, "http://localhost:5173", "http://localhost:4173"];
+    ? configuredOrigins
+    : [...configuredOrigins, "http://localhost:5173", "http://localhost:4173"];
   const sessionSecret = process.env.SESSION_SECRET;
 
   if (!sessionSecret || sessionSecret.length < 32) {
@@ -40,14 +41,11 @@ export function createApp(prisma = new PrismaClient()) {
   }
 
   app.use(helmet());
-  app.use(cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedFrontendOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Origin is not allowed by CORS."));
-    },
-    credentials: true,
+  app.use(cors((request, callback) => {
+    const origin = request.get("origin");
+    const sameOrigin = origin && origin === `${request.protocol}://${request.get("host")}`;
+    const allowed = !origin || sameOrigin || allowedFrontendOrigins.includes(origin);
+    callback(null, { origin: allowed, credentials: true });
   }));
   app.use(express.json());
   app.use(session({
@@ -130,4 +128,3 @@ export function createApp(prisma = new PrismaClient()) {
 function cryptoRandomToken() {
   return randomBytes(32).toString("hex");
 }
-
